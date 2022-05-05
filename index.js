@@ -55,6 +55,7 @@ function update() {
     } else if (cursors.right.isDown) {
         paddle.x += 5;
     }*/
+    // follow mouse
     paddle.x = this.input.x;
 }
 
