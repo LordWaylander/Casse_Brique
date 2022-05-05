@@ -35,7 +35,7 @@ function preload() {
 function create() {
     ball = this.physics.add.sprite(config.width*0.5, config.height-35, 'ball');
     //ball.setVelocity(0, -150);
-    //ball.setGravity(0, 100);
+    ball.setGravity(0, 100);
     ball.setCollideWorldBounds(true);
     ball.setBounce(1);
    
@@ -44,7 +44,6 @@ function create() {
     paddle.setImmovable(true);
     
     this.physics.add.collider(ball, paddle);
-    cursors = this.input.keyboard.createCursorKeys();
 }
 
 function update() {
@@ -56,7 +55,20 @@ function update() {
         paddle.x += 5;
     }*/
     // follow mouse
-    paddle.x = this.input.x;
+    //paddle.x = this.input.x;
+   //console.log(this.input.mouse.onMouseMove);
+
+    this.input.on('pointermove', function(pointer) {
+        paddle.x = pointer.position.x
+    }, this);
+
+    this.input.on('pointerdown', function (pointer) {
+        //console.log(pointer.position.x);
+        if(pointer.button == 0) {
+            let randomWidth = Phaser.Math.Between(0, 800)
+            ball.setVelocity(randomWidth, -350);
+        }
+    },this);
 }
 
 var game = new Phaser.Game(config);
