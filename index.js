@@ -30,11 +30,11 @@ class Message extends Phaser.GameObjects.Text  {
         this.width = game.physics.world.bounds.width/2;
         this.height = game.physics.world.bounds.height/2;
         this.message = message;
-        this.addText = game.add;
+        this.game = game;
     }
     
     msg() {
-        let text = this.addText.text(
+        let text = this.game.add.text(
             this.width,
             this.height,
             this.message,
@@ -78,20 +78,24 @@ function create() {
 
     gameOverText = new Message(this, 'Game Over').msg();
     gameWinText = new Message(this, 'You Win !').msg();
+
 }
 
 function update() {
+    if (play === false) {
+        ball.x = paddle.x;
+    }
+    
     this.input.on('pointermove', function(pointer) {
         paddle.x = pointer.position.x
     }, this);
 
     this.input.on('pointerdown', function (pointer) {
-        play = true;
-        
-        if(pointer.button == 0) {
-            let velocityX = Phaser.Math.Between(0, 400)
+        if(pointer.button == 0 && play === false) {
+            let velocityX = Phaser.Math.Between(-400, 400)
             ball.setVelocity(velocityX, -350);
         }
+        play = true;
     },this);
     
     if (ball.y > config.height) {
@@ -104,12 +108,12 @@ function update() {
 function hitPaddle(ball, paddle) {
     if (play === true) {
         ball.setVelocityY(ball.body.velocity.y - 5);
-        let newXVelocity = Math.abs(ball.body.velocity.x) + 5;
+        let newVelocityX = Math.abs(ball.body.velocity.x) + 5;
     
         if (ball.x < paddle.x) {
-            ball.setVelocityX(-newXVelocity);
+            ball.setVelocityX(-newVelocityX);
         } else {
-            ball.setVelocityX(newXVelocity);
+            ball.setVelocityX(newVelocityX);
         }
     } 
 }
