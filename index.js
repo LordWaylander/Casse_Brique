@@ -1,5 +1,5 @@
-//https://developer.mozilla.org/en-US/docs/Games/Tutorials/2D_breakout_game_Phaser/Build_the_brick_field
-//https://stackoverflow.com/questions/41592530/extend-phaser-text-class
+//https://developer.mozilla.org/en-US/docs/Games/Tutorials/2D_breakout_game_Phaser/The_score
+
 let config = {
     type: Phaser.AUTO,
     backgroundColor: '#eee',
@@ -51,31 +51,40 @@ class Message extends Phaser.GameObjects.Text  {
     }
 }
 
-let ball;
-let paddle;
+let ball, paddle, bricks;
 let play = false;
 
 function preload() {
-    this.load.image('ball', 'img/ball.png');
-    this.load.image('paddle', 'img/paddle.png');  
+    this.load.image('ball', './img/ball.png');
+    this.load.image('paddle', './img/paddle.png');
+    this.load.image('brick0', './img/brickBlue.png');
+    this.load.image('brick1', './img/brickGreen.png');
+    this.load.image('brick2', './img/brickPurple.png');
 }
 
 function create() {
-    ball = this.physics.add.sprite(config.width*0.5, config.height-35, 'ball');
+
+    // Création de la balle
+    ball = this.physics.add.sprite(config.width*0.5, config.height-40, 'ball');
     //ball.setVelocity(0, -150);
     ball.setGravity(0, 100);
     ball.setCollideWorldBounds(true);
     ball.setBounce(1);
    
+    // Création du paddle
     paddle = this.physics.add.image(config.width*0.5, config.height-20, 'paddle');
     paddle.setCollideWorldBounds(true);
     paddle.setImmovable(true);
 
-    this.physics.add.collider(ball, paddle, hitPaddle, null, this);
-    
-    //désactive collision monde bas
-    this.physics.world.checkCollision.down = false;
+    // Création des biques
+    createBricks(this);
 
+    // Gestion des colisions
+    this.physics.add.collider(ball, paddle, hitPaddle, null, this);
+    this.physics.world.checkCollision.down = false;
+    this.physics.add.collider(ball, bricks, hitBrick, null, this);
+
+    // Texte
     gameOverText = new Message(this, 'Game Over').msg();
     gameWinText = new Message(this, 'You Win !').msg();
 
@@ -118,4 +127,27 @@ function hitPaddle(ball, paddle) {
     } 
 }
 
+function createBricks(game) {
+    
+    let y = 70;
+
+    bricks = game.physics.add.group();
+    for (let i = 0; i < 3; i++) {
+        bricks.createMultiple({
+            key: 'brick'+i,
+            repeat: 10,
+            setXY: { x: 75, y: y, stepX: 65 },
+        });
+        y +=30;   
+    }
+    
+    bricks.children.iterate(function (child) {
+        child.setImmovable(true);
+    });
+}
+
+function hitBrick(ball, brick) {
+    brick.destroy();
+    //brick.disableBody(true, true);
+}
 var game = new Phaser.Game(config);
