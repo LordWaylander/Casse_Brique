@@ -65,14 +65,14 @@ function preload() {
 function create() {
 
     // Création de la balle
-    ball = this.physics.add.sprite(config.width*0.5, config.height-40, 'ball');
+    ball = this.physics.add.sprite(config.width*0.5, config.height-46, 'ball');
     //ball.setVelocity(0, -150);
     ball.setGravity(0, 100);
     ball.setCollideWorldBounds(true);
     ball.setBounce(1);
    
     // Création du paddle
-    paddle = this.physics.add.image(config.width*0.5, config.height-20, 'paddle');
+    paddle = this.physics.add.image(config.width*0.5, config.height-24, 'paddle');
     paddle.setCollideWorldBounds(true);
     paddle.setImmovable(true);
 
@@ -136,9 +136,9 @@ function createBricks(game) {
         bricks.createMultiple({
             key: 'brick'+i,
             repeat: 10,
-            setXY: { x: 75, y: y, stepX: 65 },
+            setXY: { x: 80, y: y, stepX: 64 },
         });
-        y +=30;   
+        y +=32;   
     }
     
     bricks.children.iterate(function (child) {
