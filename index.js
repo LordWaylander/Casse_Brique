@@ -1,4 +1,9 @@
-//https://developer.mozilla.org/en-US/docs/Games/Tutorials/2D_breakout_game_Phaser/The_score
+/*
+TODO list :
+ajouter des bonus -> 2nd balle ou +, des piou piou sur le paddle
+briques brisables en 2 coups (new image)
+des levels
+*/
 
 let config = {
     type: Phaser.AUTO,
@@ -25,12 +30,13 @@ let config = {
 }
 
 class Message extends Phaser.GameObjects.Text  {
-    constructor(game, message) {
+    constructor(game, message, score) {
         super(game);
         this.width = game.physics.world.bounds.width/2;
         this.height = game.physics.world.bounds.height/2;
         this.message = message;
         this.game = game;
+        this.score = score
     }
     
     msg() {
@@ -40,8 +46,25 @@ class Message extends Phaser.GameObjects.Text  {
             this.message,
             {
                 fontFamily: 'Monaco, Courier, monospace',
-                fontSize: '50px',
+                fontSize: '48px',
                 fill: '#000'
+            },
+        );
+        text.setOrigin(0.5);
+        text.setVisible(false);
+
+        return text; 
+    }
+
+    scoreText() {
+        let text = this.game.add.text(
+            this.width,
+            this.height+50,
+            this.message + score,
+            {
+                fontFamily: 'Monaco, Courier, monospace',
+                fontSize: '32px', 
+                fill: '#000' 
             },
         );
         text.setOrigin(0.5);
@@ -51,8 +74,9 @@ class Message extends Phaser.GameObjects.Text  {
     }
 }
 
-let ball, paddle, bricks;
-let play = false;
+let ball, paddle, bricks, heartEmpty, heartFillup;
+let score = 0, lifes = 3;
+let play = false, gameOver = false;
 
 function preload() {
     this.load.image('ball', './img/ball.png');
@@ -60,40 +84,45 @@ function preload() {
     this.load.image('brick0', './img/brickBlue.png');
     this.load.image('brick1', './img/brickGreen.png');
     this.load.image('brick2', './img/brickPurple.png');
+    this.load.image('heartEmpty', './img/heartEmpty.png');
+    this.load.image('heartFillup', './img/heartFillup.png');
 }
 
 function create() {
 
+    // Vies
+    heartFillup = this.add.group();
+    heartFillup.createMultiple({
+            key: 'heartFillup',
+            repeat: lifes-1,
+            setXY: { x: 715, y: 20, stepX: 40 },
+            setScale: { x: 0.05, y: 0.05},
+            setOrigin: { x: 1, y: 0},
+    });
+
     // Création de la balle
-    ball = this.physics.add.sprite(config.width*0.5, config.height-46, 'ball');
-    //ball.setVelocity(0, -150);
-    ball.setGravity(0, 100);
-    ball.setCollideWorldBounds(true);
-    ball.setBounce(1);
+    createBall(this);
    
     // Création du paddle
-    paddle = this.physics.add.image(config.width*0.5, config.height-24, 'paddle');
-    paddle.setCollideWorldBounds(true);
-    paddle.setImmovable(true);
+    createPaddle(this);
 
     // Création des biques
     createBricks(this);
 
     // Gestion des colisions
     this.physics.add.collider(ball, paddle, hitPaddle, null, this);
-    this.physics.world.checkCollision.down = false;
     this.physics.add.collider(ball, bricks, hitBrick, null, this);
+    this.physics.world.checkCollision.down = false;
 
     // Texte
-    gameOverText = new Message(this, 'Game Over').msg();
+    gameOverText = new Message(this, 'Game Over !').msg();
     gameWinText = new Message(this, 'You Win !').msg();
+    scoreText = new Message(this, 'Score: ', score).scoreText();
+    startPlay = new Message(this, 'Clic pour jouer').msg();
 
 }
 
 function update() {
-    if (play === false) {
-        ball.x = paddle.x;
-    }
     
     this.input.on('pointermove', function(pointer) {
         paddle.x = pointer.position.x
@@ -101,30 +130,70 @@ function update() {
 
     this.input.on('pointerdown', function (pointer) {
         if(pointer.button == 0 && play === false) {
-            let velocityX = Phaser.Math.Between(-400, 400)
+            let velocityX;
+            if (paddle.x >= 400) {
+                velocityX = Phaser.Math.Between(200, 400);
+            } else {
+                velocityX = Phaser.Math.Between(-400, -200);
+            }
             ball.setVelocity(velocityX, -350);
         }
+
         play = true;
     },this);
     
-    if (ball.y > config.height) {
-        gameOverText.visible = true;
+    if (lifes === 0) {
+        gameOver = true;
+        gameOverText.setVisible(true);
+        scoreText.setText('Score : '+score);
+        scoreText.setVisible(true)
         ball.disableBody(true, true);
         this.scene.pause("default");
-    } 
+
+    }else if (ball.y > config.height && lifes != 0) {
+        lifes--;
+
+        // position du 1er coeur, pour le remplacer par un coeur vide
+        heartFillupX = heartFillup.getFirst(true).x;
+        heartFillupY = heartFillup.getFirst(true).y
+        
+        heartFillup.remove(heartFillup.getFirst(true), true);
+        heartEmpty = this.add.image(heartFillupX, heartFillupY, 'heartEmpty').setScale(0.03).setOrigin(1, 0); 
+
+        ball.setPosition(config.width*0.5, config.height-46);
+        paddle.setPosition(config.width*0.5, config.height-24);
+        ball.setVelocity(0);
+        play = false;
+
+    }
+    
+    if (play === false && gameOver === false) {
+        ball.x = paddle.x;
+        startPlay.setVisible(true);
+
+    }else {
+        startPlay.setVisible(false);
+    }
+
+    if (bricks.countActive(true) === 0) {
+        gameWinText.setVisible(true);
+        scoreText.setText('Score : '+score);
+        scoreText.setVisible(true)
+        this.scene.pause("default");
+    }
 }
 
-function hitPaddle(ball, paddle) {
-    if (play === true) {
-        ball.setVelocityY(ball.body.velocity.y - 5);
-        let newVelocityX = Math.abs(ball.body.velocity.x) + 5;
-    
-        if (ball.x < paddle.x) {
-            ball.setVelocityX(-newVelocityX);
-        } else {
-            ball.setVelocityX(newVelocityX);
-        }
-    } 
+function createBall(game) {
+    ball = game.physics.add.sprite(config.width*0.5, config.height-46, 'ball');
+    ball.setGravity(0, 100);
+    ball.setCollideWorldBounds(true);
+    ball.setBounce(1);
+}
+
+function createPaddle(game) {
+    paddle = game.physics.add.image(config.width*0.5, config.height-24, 'paddle');
+    paddle.setCollideWorldBounds(true);
+    paddle.setImmovable(true);
 }
 
 function createBricks(game) {
@@ -146,8 +215,22 @@ function createBricks(game) {
     });
 }
 
-function hitBrick(ball, brick) {
-    brick.destroy();
-    //brick.disableBody(true, true);
+function hitPaddle(ball, paddle) {
+    if (play === true) {
+        ball.setVelocityX (-1*5*(paddle.x-ball.x));
+        ball.setVelocityY(ball.body.velocity.y - 5);
+    } 
+}
+
+function hitBrick(ball, brick) {  
+    this.add.tween({
+        targets: brick,
+        duration: 1000,
+        ease: 'linear',
+        scale : 0,
+        onComplete: ()=>{brick.destroy();}
+    });
+
+    score+=10;
 }
 var game = new Phaser.Game(config);
