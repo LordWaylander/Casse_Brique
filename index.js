@@ -3,6 +3,7 @@ TODO list :
 ajouter des bonus -> 2nd balle ou +, des piou piou sur le paddle
 briques brisables en 2 coups (new image)
 des levels
+button restart -> https://developer.mozilla.org/en-US/docs/Games/Tutorials/2D_breakout_game_Phaser/Buttons
 */
 
 let config = {
