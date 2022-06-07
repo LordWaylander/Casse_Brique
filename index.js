@@ -5,6 +5,7 @@ briques brisables en 2 coups (new image)
 des levels
 button restart -> https://developer.mozilla.org/en-US/docs/Games/Tutorials/2D_breakout_game_Phaser/Buttons
 */
+import {Message} from './class.js'
 
 let config = {
     type: Phaser.AUTO,
@@ -30,54 +31,10 @@ let config = {
     }
 }
 
-class Message extends Phaser.GameObjects.Text  {
-    constructor(game, message, score) {
-        super(game);
-        this.width = game.physics.world.bounds.width/2;
-        this.height = game.physics.world.bounds.height/2;
-        this.message = message;
-        this.game = game;
-        this.score = score
-    }
-    
-    msg() {
-        let text = this.game.add.text(
-            this.width,
-            this.height,
-            this.message,
-            {
-                fontFamily: 'Monaco, Courier, monospace',
-                fontSize: '48px',
-                fill: '#000'
-            },
-        );
-        text.setOrigin(0.5);
-        text.setVisible(false);
-
-        return text; 
-    }
-
-    scoreText() {
-        let text = this.game.add.text(
-            this.width,
-            this.height+50,
-            this.message + score,
-            {
-                fontFamily: 'Monaco, Courier, monospace',
-                fontSize: '32px', 
-                fill: '#000' 
-            },
-        );
-        text.setOrigin(0.5);
-        text.setVisible(false);
-
-        return text; 
-    }
-}
-
-let ball, paddle, bricks, heartEmpty, heartFillup;
+let ball, paddle, bricks, heartEmpty, heartFillup, gameOverText, gameWinText, scoreText, startPlay, heartFillupX, heartFillupY;
 let score = 0, lifes = 3;
 let play = false, gameOver = false;
+
 
 function preload() {
     this.load.image('ball', './img/ball.png');
