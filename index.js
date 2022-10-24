@@ -142,7 +142,7 @@ function update() {
 }
 
 function createBall(game) {
-    ball = game.physics.add.sprite(config.width*0.5, config.height-46, 'ball');
+    ball = game.physics.add.sprite(config.width*0.5, config.height-45, 'ball');
     ball.setGravity(0, 100);
     ball.setCollideWorldBounds(true);
     ball.setBounce(1);
